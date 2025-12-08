@@ -1,0 +1,29 @@
+ :root {
+            --primary-color: #4e73df;
+            --success-color: #1cc88a;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --light-bg: #f8f9fc;
+        }
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+        }
+        .stat-card { border-left: 0.25rem solid var(--primary-color); }
+        .stat-card.sales { border-left-color: var(--success-color); }
+        .stat-card.customers { border-left-color: var(--primary-color); }
+        .stat-card.products { border-left-color: var(--warning-color); }
+        .stat-card.pending { border-left-color: var(--danger-color); }
+        .navbar-brand { font-weight: bold; }
+        .receipt {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 20px;
+            border: 1px dashed #ccc;
+        }
