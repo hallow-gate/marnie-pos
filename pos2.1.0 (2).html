@@ -3544,24 +3544,18 @@
          // Initialize Firebase Auth
     const auth = firebase.auth();
     
-    // Login System Class
+  // Login System Class - Fixed version
     class LoginSystem {
         constructor() {
             this.uid = localStorage.getItem('pos_uid');
             this.email = localStorage.getItem('pos_email');
             this.user = null;
+            this.isAuthenticated = false;
             
             this.init();
         }
         
         init() {
-            // Check if user is already logged in
-            if (this.uid && this.email) {
-                this.verifyUser();
-            } else {
-                this.showLogin();
-            }
-            
             // Set up auth state listener
             auth.onAuthStateChanged((user) => {
                 this.user = user;
@@ -3572,46 +3566,65 @@
                 }
             });
             
+            // Check initial auth state
+            this.checkAuthState();
+            
             // Set up login form event listeners
             this.setupLoginForm();
+            
+            // Set up logout button
+            document.getElementById('logout-btn').addEventListener('click', () => this.logout());
+            
+            // Auto-focus on email input when login overlay is shown
+            setTimeout(() => {
+                if (document.getElementById('login-overlay').classList.contains('active')) {
+                    document.getElementById('login-email').focus();
+                }
+            }, 500);
         }
         
-        verifyUser() {
-            // Verify stored credentials by signing in with email/password
-            if (this.email) {
-                const storedPassword = localStorage.getItem('pos_password_hash');
-                if (storedPassword) {
-                    // In a real implementation, you would hash the password and compare
-                    // For now, we'll just check if the stored password matches the hash
-                    this.autoLogin();
-                }
-            }
-        }
-        
-        async autoLogin() {
-            try {
-                // Try to get the current user from Firebase
-                const user = auth.currentUser;
-                if (user && user.uid === this.uid) {
-                    this.hideLogin();
-                } else {
-                    // User not logged in, show login form
-                    this.showLogin();
-                }
-            } catch (error) {
-                console.error('Auto-login error:', error);
+        checkAuthState() {
+            const user = auth.currentUser;
+            if (user) {
+                // User is already signed in
+                this.handleLoginSuccess(user);
+            } else if (this.uid && this.email) {
+                // Try to auto-login with stored credentials
+                this.showLogin();
+                // Pre-fill email
+                document.getElementById('login-email').value = this.email;
+                document.getElementById('login-password').focus();
+            } else {
+                // No stored credentials, show login
                 this.showLogin();
             }
         }
         
         showLogin() {
-            document.getElementById('login-overlay').style.display = 'flex';
+            const loginOverlay = document.getElementById('login-overlay');
+            loginOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
+            
+            // Hide main content
+            document.querySelector('nav').style.display = 'none';
+            document.querySelector('.container-fluid').style.display = 'none';
+            document.getElementById('nyc-wrapper').style.display = 'none';
+            
+            // Auto-focus on email input
+            setTimeout(() => {
+                document.getElementById('login-email').focus();
+            }, 100);
         }
         
         hideLogin() {
-            document.getElementById('login-overlay').style.display = 'none';
+            const loginOverlay = document.getElementById('login-overlay');
+            loginOverlay.classList.remove('active');
             document.body.style.overflow = 'auto';
+            
+            // Show main content
+            document.querySelector('nav').style.display = 'flex';
+            document.querySelector('.container-fluid').style.display = 'block';
+            document.getElementById('nyc-wrapper').style.display = 'block';
             
             // Initialize POS system only after successful login
             if (!window.posSystem) {
@@ -3626,14 +3639,37 @@
             
             // Enter key to submit
             emailInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.login();
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.login();
+                }
             });
             
             passwordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.login();
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.login();
+                }
             });
             
-            loginBtn.addEventListener('click', () => this.login());
+            loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.login();
+            });
+            
+            // Make sure inputs are clickable
+            emailInput.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+            
+            passwordInput.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+            
+            // Prevent overlay from interfering with form clicks
+            document.querySelector('.login-form').addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
         }
         
         async login() {
@@ -3667,10 +3703,6 @@
                 localStorage.setItem('pos_uid', user.uid);
                 localStorage.setItem('pos_email', user.email);
                 
-                // Store password hash (in real app, use proper hashing)
-                const passwordHash = btoa(password); // Simple base64 encoding for demo
-                localStorage.setItem('pos_password_hash', passwordHash);
-                
                 this.showStatus('Login successful! Loading system...', 'success');
                 
                 // Wait a bit for user to see success message
@@ -3685,7 +3717,7 @@
                 let errorMessage = 'Login failed. Please try again.';
                 switch (error.code) {
                     case 'auth/user-not-found':
-                        errorMessage = 'No account found with this email.';
+                        errorMessage = 'No account found with this email. You need to create an account first.';
                         break;
                     case 'auth/wrong-password':
                         errorMessage = 'Incorrect password. Please try again.';
@@ -3699,6 +3731,9 @@
                     case 'auth/too-many-requests':
                         errorMessage = 'Too many failed attempts. Please try again later.';
                         break;
+                    case 'auth/network-request-failed':
+                        errorMessage = 'Network error. Please check your internet connection.';
+                        break;
                 }
                 
                 this.showStatus(errorMessage, 'error');
@@ -3707,23 +3742,37 @@
                 loginBtn.querySelector('.button-text').style.display = 'block';
                 loginBtn.querySelector('.button-loader').style.display = 'none';
                 loginBtn.disabled = false;
+                
+                // Re-focus on password field
+                document.getElementById('login-password').focus();
             }
         }
         
         handleLoginSuccess(user) {
+            this.isAuthenticated = true;
+            
             // Update stored credentials
             localStorage.setItem('pos_uid', user.uid);
             localStorage.setItem('pos_email', user.email);
+            
+            // Update UI with user info
+            document.getElementById('logged-in-user').textContent = user.email;
+            document.getElementById('logout-btn').style.display = 'block';
             
             // Hide login overlay if it's visible
             this.hideLogin();
         }
         
         handleLogout() {
-            // Clear localStorage if user logs out
+            this.isAuthenticated = false;
+            
+            // Clear localStorage
             localStorage.removeItem('pos_uid');
             localStorage.removeItem('pos_email');
-            localStorage.removeItem('pos_password_hash');
+            
+            // Hide logout button
+            document.getElementById('logout-btn').style.display = 'none';
+            document.getElementById('logged-in-user').textContent = '';
             
             // Show login form
             this.showLogin();
@@ -3738,6 +3787,18 @@
             loginBtn.querySelector('.button-text').style.display = 'block';
             loginBtn.querySelector('.button-loader').style.display = 'none';
             loginBtn.disabled = false;
+            
+            // Auto-focus on email
+            setTimeout(() => {
+                document.getElementById('login-email').focus();
+            }, 100);
+        }
+        
+        logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                auth.signOut();
+                this.handleLogout();
+            }
         }
         
         showStatus(message, type = 'info') {
@@ -3759,37 +3820,59 @@
             return re.test(email);
         }
         
-        // Logout function (can be called from elsewhere)
-        logout() {
-            auth.signOut();
-            this.handleLogout();
+        getCurrentUser() {
+            return this.user;
         }
-    }
-    
-    // Modify the existing DOMContentLoaded event to include login system
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialize login system first
-        window.loginSystem = new LoginSystem();
         
-        // The POS system will be initialized by loginSystem.hideLogin() after successful login
-    });
-    
-    // Add logout functionality to the system
-    function addLogoutButton() {
-        // Create logout button in navbar
-        const navbar = document.querySelector('.navbar .container-fluid');
-        if (navbar) {
-            const logoutBtn = document.createElement('button');
-            logoutBtn.className = 'btn btn-outline-light btn-sm ms-2';
-            logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-1"></i> Logout';
-            logoutBtn.onclick = () => window.loginSystem.logout();
-            
-            navbar.querySelector('.d-flex').appendChild(logoutBtn);
+        isLoggedIn() {
+            return this.isAuthenticated;
         }
     }
     
-    // Call addLogoutButton when login is successful
-    setTimeout(addLogoutButton, 1000);
+    // Also add a test account creation button for testing purposes
+    // This will help you create your first account
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add a test button to create an account (remove this in production)
+        setTimeout(() => {
+            const formFooter = document.querySelector('.form-footer');
+            if (formFooter && !document.getElementById('test-account-btn')) {
+                const testBtn = document.createElement('button');
+                testBtn.id = 'test-account-btn';
+                testBtn.className = 'btn btn-sm btn-warning mt-2';
+                testBtn.style.cssText = 'background: #f6c23e; border-color: #f6c23e; color: #000; font-size: 12px; padding: 5px 10px;';
+                testBtn.innerHTML = '<i class="fas fa-user-plus me-1"></i> Create Test Account';
+                testBtn.onclick = async function() {
+                    const email = document.getElementById('login-email').value || 'test@example.com';
+                    const password = document.getElementById('login-password').value || 'password123';
+                    
+                    if (!email || !password) {
+                        alert('Please enter email and password first');
+                        return;
+                    }
+                    
+                    try {
+                        // Create user with Firebase
+                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                        alert(`Account created successfully!\nEmail: ${email}\nPassword: ${password}\n\nYou can now login with these credentials.`);
+                        
+                        // Sign out so they can login fresh
+                        await auth.signOut();
+                        
+                        // Pre-fill the form
+                        document.getElementById('login-email').value = email;
+                        document.getElementById('login-password').value = '';
+                        document.getElementById('login-password').focus();
+                        
+                    } catch (error) {
+                        console.error('Error creating account:', error);
+                        alert('Error creating account: ' + error.message);
+                    }
+                };
+                
+                formFooter.parentNode.insertBefore(testBtn, formFooter.nextSibling);
+            }
+        }, 1000);
+    });
     </script>
 </body>
 </html>
