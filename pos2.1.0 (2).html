@@ -7,6 +7,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -707,10 +708,559 @@
                 font-size: 0.7rem;
             }
             }
+         /* ===== LOGIN OVERLAY STYLES ===== */
+    #login-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    
+    .login-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .login-wrapper {
+        width: 100%;
+        max-width: 420px;
+        padding: 20px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Animated Background */
+    .login-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+    
+    .bg-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(78, 115, 223, 0.1) 0%, rgba(78, 115, 223, 0) 70%);
+        animation: float 20s infinite linear;
+    }
+    
+    .bg-circle:nth-child(1) {
+        width: 300px;
+        height: 300px;
+        top: -100px;
+        left: -100px;
+        animation-delay: 0s;
+    }
+    
+    .bg-circle:nth-child(2) {
+        width: 200px;
+        height: 200px;
+        bottom: 100px;
+        right: 150px;
+        animation-delay: -5s;
+        animation-duration: 25s;
+    }
+    
+    .bg-circle:nth-child(3) {
+        width: 150px;
+        height: 150px;
+        top: 50%;
+        left: 80%;
+        animation-delay: -10s;
+        animation-duration: 15s;
+    }
+    
+    .bg-circle:nth-child(4) {
+        width: 250px;
+        height: 250px;
+        bottom: -50px;
+        left: 50%;
+        animation-delay: -7s;
+    }
+    
+    .bg-circle:nth-child(5) {
+        width: 180px;
+        height: 180px;
+        top: 70%;
+        left: 10%;
+        animation-delay: -12s;
+        animation-duration: 22s;
+    }
+    
+    @keyframes float {
+        0% {
+            transform: translate(0, 0) rotate(0deg);
+        }
+        33% {
+            transform: translate(30px, -30px) rotate(120deg);
+        }
+        66% {
+            transform: translate(-20px, 20px) rotate(240deg);
+        }
+        100% {
+            transform: translate(0, 0) rotate(360deg);
+        }
+    }
+    
+    /* Login Card */
+    .login-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.3),
+            0 0 100px rgba(78, 115, 223, 0.15),
+            inset 0 0 20px rgba(255, 255, 255, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Header */
+    .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .logo-container {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 20px;
+    }
+    
+    .logo-outer-ring {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4e73df 0%, #36b9cc 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: rotate-ring 10s linear infinite;
+        box-shadow: 0 0 30px rgba(78, 115, 223, 0.5);
+    }
+    
+    .logo-inner-ring {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .logo-icon {
+        font-size: 32px;
+        background: linear-gradient(135deg, #4e73df 0%, #36b9cc 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    
+    @keyframes rotate-ring {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    .login-title {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin: 0 0 10px 0;
+        letter-spacing: 1px;
+    }
+    
+    .login-subtitle {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 18px;
+        margin: 0;
+        font-weight: 300;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    
+    /* Form Styles */
+    .login-form {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .form-group {
+        margin-bottom: 30px;
+    }
+    
+    .input-container {
+        position: relative;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #4e73df;
+        font-size: 18px;
+        z-index: 2;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 15px 15px 15px 50px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: #fff;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #4e73df;
+        box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .input-underline {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #4e73df, #36b9cc);
+        transform: translateX(-50%);
+        transition: width 0.3s ease;
+    }
+    
+    .form-input:focus ~ .input-underline {
+        width: 100%;
+    }
+    
+    /* Login Button */
+    .login-button {
+        width: 100%;
+        padding: 18px 30px;
+        background: linear-gradient(135deg, #4e73df 0%, #36b9cc 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .login-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(78, 115, 223, 0.4);
+    }
+    
+    .login-button:active {
+        transform: translateY(0);
+    }
+    
+    .button-glow {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        top: 0;
+        left: -100%;
+        animation: glow-slide 2s infinite;
+    }
+    
+    @keyframes glow-slide {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+    
+    .button-text {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .button-loader {
+        display: none;
+        align-items: center;
+        gap: 5px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .loader-dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        animation: loader-bounce 1.4s infinite ease-in-out;
+    }
+    
+    .loader-dot:nth-child(1) {
+        animation-delay: -0.32s;
+    }
+    
+    .loader-dot:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+    
+    @keyframes loader-bounce {
+        0%, 80%, 100% {
+            transform: scale(0);
+        }
+        40% {
+            transform: scale(1);
+        }
+    }
+    
+    /* Form Footer */
+    .form-footer {
+        text-align: center;
+        margin-top: 30px;
+    }
+    
+    .status-message {
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        min-height: 20px;
+    }
+    
+    .status-message.error {
+        background: rgba(231, 74, 59, 0.1);
+        color: #e74a3b;
+        border: 1px solid rgba(231, 74, 59, 0.3);
+    }
+    
+    .status-message.success {
+        background: rgba(28, 200, 138, 0.1);
+        color: #1cc88a;
+        border: 1px solid rgba(28, 200, 138, 0.3);
+    }
+    
+    .firebase-info {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 12px;
+        padding: 5px 15px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .firebase-info i {
+        color: #ffcb2b;
+    }
+    
+    /* Version Info */
+    .version-info {
+        text-align: center;
+        margin-top: 30px;
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+    
+    /* Effects */
+    .login-effects {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .effect-particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.1), transparent),
+            radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.1), transparent),
+            radial-gradient(2px 2px at 50px 160px, rgba(255, 255, 255, 0.1), transparent),
+            radial-gradient(2px 2px at 90px 40px, rgba(255, 255, 255, 0.1), transparent),
+            radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.1), transparent),
+            radial-gradient(2px 2px at 160px 120px, rgba(255, 255, 255, 0.1), transparent);
+        background-repeat: repeat;
+        animation: particles-move 20s infinite linear;
+    }
+    
+    .effect-grid {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+    }
+    
+    @keyframes particles-move {
+        100% {
+            background-position: 0 1000px;
+        }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 480px) {
+        .login-wrapper {
+            padding: 15px;
+        }
+        
+        .login-card {
+            padding: 30px 20px;
+        }
+        
+        .logo-container {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .logo-inner-ring {
+            width: 56px;
+            height: 56px;
+        }
+        
+        .logo-icon {
+            font-size: 26px;
+        }
+        
+        .login-title {
+            font-size: 28px;
+        }
+        
+        .login-subtitle {
+            font-size: 16px;
+        }
+    }
     </style>
 </head>
     
 <body>
+    <div id="login-overlay" style="display: none;">
+    <div class="login-container">
+        <div class="login-wrapper">
+            <!-- Animated Background -->
+            <div class="login-bg">
+                <div class="bg-circle"></div>
+                <div class="bg-circle"></div>
+                <div class="bg-circle"></div>
+                <div class="bg-circle"></div>
+                <div class="bg-circle"></div>
+            </div>
+            
+            <!-- Login Card -->
+            <div class="login-card">
+                <!-- Header with Animated Logo -->
+                <div class="login-header">
+                    <div class="logo-container">
+                        <div class="logo-outer-ring">
+                            <div class="logo-inner-ring">
+                                <i class="fas fa-cash-register logo-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="login-title">Marnie Store</h1>
+                    <p class="login-subtitle">Welcome Back</p>
+                </div>
+                
+                <!-- Login Form -->
+                <div class="login-form">
+                    <div class="form-group">
+                        <div class="input-container">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="login-email" placeholder="Email Address" class="form-input">
+                            <div class="input-underline"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="input-container">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="login-password" placeholder="Password" class="form-input">
+                            <div class="input-underline"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button id="login-btn" class="login-button">
+                            <span class="button-text">Sign In</span>
+                            <div class="button-loader">
+                                <div class="loader-dot"></div>
+                                <div class="loader-dot"></div>
+                                <div class="loader-dot"></div>
+                            </div>
+                            <div class="button-glow"></div>
+                        </button>
+                    </div>
+                    
+                    <div class="form-footer">
+                        <div class="status-message" id="login-status"></div>
+                        <div class="firebase-info">
+                            <i class="fas fa-database"></i>
+                            <span>Secured by Firebase</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Futuristic Elements -->
+                <div class="login-effects">
+                    <div class="effect-particles"></div>
+                    <div class="effect-grid"></div>
+                </div>
+            </div>
+            
+            <!-- Version Info -->
+            <div class="version-info">
+                <span>POS System v2.1 • Secure Login</span>
+            </div>
+        </div>
+    </div>
+</div>
+
     
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -2905,6 +3455,255 @@
                 }
             }
         })();
+         // Initialize Firebase Auth
+    const auth = firebase.auth();
+    
+    // Login System Class
+    class LoginSystem {
+        constructor() {
+            this.uid = localStorage.getItem('pos_uid');
+            this.email = localStorage.getItem('pos_email');
+            this.user = null;
+            
+            this.init();
+        }
+        
+        init() {
+            // Check if user is already logged in
+            if (this.uid && this.email) {
+                this.verifyUser();
+            } else {
+                this.showLogin();
+            }
+            
+            // Set up auth state listener
+            auth.onAuthStateChanged((user) => {
+                this.user = user;
+                if (user) {
+                    this.handleLoginSuccess(user);
+                } else {
+                    this.handleLogout();
+                }
+            });
+            
+            // Set up login form event listeners
+            this.setupLoginForm();
+        }
+        
+        verifyUser() {
+            // Verify stored credentials by signing in with email/password
+            if (this.email) {
+                const storedPassword = localStorage.getItem('pos_password_hash');
+                if (storedPassword) {
+                    // In a real implementation, you would hash the password and compare
+                    // For now, we'll just check if the stored password matches the hash
+                    this.autoLogin();
+                }
+            }
+        }
+        
+        async autoLogin() {
+            try {
+                // Try to get the current user from Firebase
+                const user = auth.currentUser;
+                if (user && user.uid === this.uid) {
+                    this.hideLogin();
+                } else {
+                    // User not logged in, show login form
+                    this.showLogin();
+                }
+            } catch (error) {
+                console.error('Auto-login error:', error);
+                this.showLogin();
+            }
+        }
+        
+        showLogin() {
+            document.getElementById('login-overlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        hideLogin() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            // Initialize POS system only after successful login
+            if (!window.posSystem) {
+                window.posSystem = new DebtPOSSystem();
+            }
+        }
+        
+        setupLoginForm() {
+            const loginBtn = document.getElementById('login-btn');
+            const emailInput = document.getElementById('login-email');
+            const passwordInput = document.getElementById('login-password');
+            
+            // Enter key to submit
+            emailInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.login();
+            });
+            
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.login();
+            });
+            
+            loginBtn.addEventListener('click', () => this.login());
+        }
+        
+        async login() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const loginBtn = document.getElementById('login-btn');
+            const statusEl = document.getElementById('login-status');
+            
+            // Validation
+            if (!email || !password) {
+                this.showStatus('Please enter both email and password', 'error');
+                return;
+            }
+            
+            if (!this.isValidEmail(email)) {
+                this.showStatus('Please enter a valid email address', 'error');
+                return;
+            }
+            
+            // Show loading state
+            loginBtn.querySelector('.button-text').style.display = 'none';
+            loginBtn.querySelector('.button-loader').style.display = 'flex';
+            loginBtn.disabled = true;
+            
+            try {
+                // Sign in with Firebase Auth
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Store credentials in localStorage
+                localStorage.setItem('pos_uid', user.uid);
+                localStorage.setItem('pos_email', user.email);
+                
+                // Store password hash (in real app, use proper hashing)
+                const passwordHash = btoa(password); // Simple base64 encoding for demo
+                localStorage.setItem('pos_password_hash', passwordHash);
+                
+                this.showStatus('Login successful! Loading system...', 'success');
+                
+                // Wait a bit for user to see success message
+                setTimeout(() => {
+                    this.hideLogin();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                // Handle specific Firebase Auth errors
+                let errorMessage = 'Login failed. Please try again.';
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'No account found with this email.';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Incorrect password. Please try again.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Invalid email address.';
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage = 'This account has been disabled.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Too many failed attempts. Please try again later.';
+                        break;
+                }
+                
+                this.showStatus(errorMessage, 'error');
+                
+                // Reset button
+                loginBtn.querySelector('.button-text').style.display = 'block';
+                loginBtn.querySelector('.button-loader').style.display = 'none';
+                loginBtn.disabled = false;
+            }
+        }
+        
+        handleLoginSuccess(user) {
+            // Update stored credentials
+            localStorage.setItem('pos_uid', user.uid);
+            localStorage.setItem('pos_email', user.email);
+            
+            // Hide login overlay if it's visible
+            this.hideLogin();
+        }
+        
+        handleLogout() {
+            // Clear localStorage if user logs out
+            localStorage.removeItem('pos_uid');
+            localStorage.removeItem('pos_email');
+            localStorage.removeItem('pos_password_hash');
+            
+            // Show login form
+            this.showLogin();
+            
+            // Reset form
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('login-status').textContent = '';
+            document.getElementById('login-status').className = 'status-message';
+            
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.querySelector('.button-text').style.display = 'block';
+            loginBtn.querySelector('.button-loader').style.display = 'none';
+            loginBtn.disabled = false;
+        }
+        
+        showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('login-status');
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+            
+            // Clear status after 5 seconds for errors
+            if (type === 'error') {
+                setTimeout(() => {
+                    statusEl.textContent = '';
+                    statusEl.className = 'status-message';
+                }, 5000);
+            }
+        }
+        
+        isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        // Logout function (can be called from elsewhere)
+        logout() {
+            auth.signOut();
+            this.handleLogout();
+        }
+    }
+    
+    // Modify the existing DOMContentLoaded event to include login system
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize login system first
+        window.loginSystem = new LoginSystem();
+        
+        // The POS system will be initialized by loginSystem.hideLogin() after successful login
+    });
+    
+    // Add logout functionality to the system
+    function addLogoutButton() {
+        // Create logout button in navbar
+        const navbar = document.querySelector('.navbar .container-fluid');
+        if (navbar) {
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'btn btn-outline-light btn-sm ms-2';
+            logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-1"></i> Logout';
+            logoutBtn.onclick = () => window.loginSystem.logout();
+            
+            navbar.querySelector('.d-flex').appendChild(logoutBtn);
+        }
+    }
+    
+    // Call addLogoutButton when login is successful
+    setTimeout(addLogoutButton, 1000);
     </script>
 </body>
 </html>
