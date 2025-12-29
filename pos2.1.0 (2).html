@@ -3330,431 +3330,444 @@
             'use strict';
             
             // Unique prefix for all variables to avoid conflicts
-            const TEST_FIREWORKS = false;
-            const nycContainer = document.getElementById("nyc-container");
-            const nycTimeEl = document.getElementById("nyc-time");
-            const nycYearText = document.getElementById("nyc-year-text");
-            const nycCelebrationText = document.getElementById("nyc-celebration-text");
+const TEST_FIREWORKS = false;
+const nycContainer = document.getElementById("nyc-container");
+const nycTimeEl = document.getElementById("nyc-time");
+const nycYearText = document.getElementById("nyc-year-text");
+const nycCelebrationText = document.getElementById("nyc-celebration-text");
+
+// Get Philippine time (UTC+8)
+function getPHTime() {
+    const now = new Date();
+    // Convert to Philippine time (UTC+8)
+    const phOffset = 8 * 60; // 8 hours in minutes
+    const localOffset = now.getTimezoneOffset();
+    const phTime = new Date(now.getTime() + (phOffset + localOffset) * 60000);
+    return phTime;
+}
+
+// Check if it's January (New Year period) in Philippine time
+const phNow = getPHTime();
+const phCurrentMonth = phNow.getMonth();
+const phCurrentYear = phNow.getFullYear();
+const phNextYear = phCurrentYear + 1;
+
+// Start welding sparkles immediately
+nycStartWeldingSparkles();
+
+// If it's January 1st in Philippine time, show celebration
+if (phCurrentMonth === 0 && phNow.getDate() === 1) {
+    // January 1st - show celebration
+    nycTimeEl.style.display = 'none';
+    nycYearText.textContent = `${phCurrentYear}`;
+    nycCelebrationText.style.display = 'block';
+    nycCelebrationText.textContent = "HAPPY NEW YEAR!";
+    
+    // Start continuous fireworks for January 1st only
+    nycStartFullSiteFireworks();
+    
+    // Show countdown for next year in small text
+    nycShowNextYearCountdown();
+} else {
+    // Not January 1st - show normal countdown to Philippine New Year
+    nycYearText.textContent = `${phCurrentYear} → ${phNextYear}`;
+    nycCelebrationText.style.display = 'none';
+    nycStartCountdown();
+}
+
+function nycStartWeldingSparkles() {
+    // Create continuous welding sparkles on container sides
+    setInterval(function() {
+        nycCreateWeldingSpark();
+    }, 300);
+}
+
+function nycCreateWeldingSpark() {
+    const nycContainerRect = nycContainer.getBoundingClientRect();
+    
+    // Choose which side to spark from
+    const nycSide = Math.floor(Math.random() * 4);
+    
+    let nycStartX, nycStartY, nycAngle;
+    
+    switch(nycSide) {
+        case 0: // Top
+            nycStartX = Math.random() * nycContainerRect.width;
+            nycStartY = 0;
+            nycAngle = Math.PI * 0.5 + (Math.random() * 0.8 - 0.4);
+            break;
+        case 1: // Right
+            nycStartX = nycContainerRect.width;
+            nycStartY = Math.random() * nycContainerRect.height;
+            nycAngle = Math.PI + (Math.random() * 0.8 - 0.4);
+            break;
+        case 2: // Bottom
+            nycStartX = Math.random() * nycContainerRect.width;
+            nycStartY = nycContainerRect.height;
+            nycAngle = Math.PI * 1.5 + (Math.random() * 0.8 - 0.4);
+            break;
+        case 3: // Left
+            nycStartX = 0;
+            nycStartY = Math.random() * nycContainerRect.height;
+            nycAngle = Math.random() * 0.8 - 0.4;
+            break;
+    }
+    
+    // Create the spark
+    const nycSparkCount = 3 + Math.floor(Math.random() * 5);
+    
+    for (let i = 0; i < nycSparkCount; i++) {
+        setTimeout(function() {
+            // Create spark trail
+            const nycTrail = document.createElement("div");
+            nycTrail.className = "nyc-spark-trail";
+            nycTrail.style.left = `${nycStartX}px`;
+            nycTrail.style.top = `${nycStartY}px`;
+            nycTrail.style.transform = `rotate(${nycAngle}rad)`;
             
-            // Check if it's January (New Year period)
-            const nycNow = new Date();
-            const nycCurrentMonth = nycNow.getMonth();
-            const nycCurrentYear = nycNow.getFullYear();
-            const nycNextYear = nycCurrentYear + 1;
-            
-            // Start welding sparkles immediately
-            nycStartWeldingSparkles();
-            
-            // If it's January, show "Happy New Year" instead of countdown
-            if (nycCurrentMonth === 0) {
-                // January - show celebration
-                nycTimeEl.style.display = 'none';
-                nycYearText.textContent = `${nycCurrentYear}`;
-                nycCelebrationText.style.display = 'block';
-                nycCelebrationText.textContent = "HAPPY NEW YEAR!";
-                
-                // Start continuous fireworks for January
-                nycStartFullSiteFireworks();
-                
-                // Show countdown for next year in small text
-                nycShowNextYearCountdown();
+            // Random trail color temperature
+            const nycTemp = Math.random();
+            if (nycTemp > 0.7) {
+                nycTrail.style.background = `linear-gradient(to bottom, transparent, #ffcc00, #ff9900)`;
+            } else if (nycTemp > 0.4) {
+                nycTrail.style.background = `linear-gradient(to bottom, transparent, #ff9900, #ff5500)`;
             } else {
-                // Not January - show normal countdown
-                nycYearText.textContent = `${nycCurrentYear} → ${nycNextYear}`;
-                nycCelebrationText.style.display = 'none';
-                nycStartCountdown();
+                nycTrail.style.background = `linear-gradient(to bottom, transparent, #ff5500, #ff3300)`;
             }
             
-            function nycStartWeldingSparkles() {
-                // Create continuous welding sparkles on container sides
-                setInterval(function() {
-                    nycCreateWeldingSpark();
-                }, 300);
+            nycContainer.appendChild(nycTrail);
+            
+            // Create spark particle
+            const nycSpark = document.createElement("div");
+            nycSpark.className = "nyc-welding-spark";
+            nycSpark.style.left = `${nycStartX}px`;
+            nycSpark.style.top = `${nycStartY}px`;
+            
+            // Random spark color based on temperature
+            if (nycTemp > 0.7) {
+                nycSpark.style.background = `radial-gradient(circle, #fff9c4, #ffcc00)`;
+                nycSpark.style.boxShadow = `0 0 6px 2px #ffcc00`;
+            } else if (nycTemp > 0.4) {
+                nycSpark.style.background = `radial-gradient(circle, #ffcc80, #ff9900)`;
+                nycSpark.style.boxShadow = `0 0 5px 1px #ff9900`;
+            } else {
+                nycSpark.style.background = `radial-gradient(circle, #ffab91, #ff5500)`;
+                nycSpark.style.boxShadow = `0 0 4px 1px #ff5500`;
             }
             
-            function nycCreateWeldingSpark() {
-                const nycContainerRect = nycContainer.getBoundingClientRect();
+            nycContainer.appendChild(nycSpark);
+            
+            // Animate spark
+            const nycDistance = 10 + Math.random() * 25;
+            const nycSparkAngle = nycAngle + (Math.random() * 0.4 - 0.2);
+            const nycEndX = nycStartX + Math.cos(nycSparkAngle) * nycDistance;
+            const nycEndY = nycStartY + Math.sin(nycSparkAngle) * nycDistance;
+            
+            const nycDuration = 300 + Math.random() * 400;
+            
+            // Animate spark
+            nycSpark.animate([
+                { 
+                    transform: 'translate(0, 0) scale(1)',
+                    opacity: 1
+                },
+                { 
+                    transform: `translate(${nycEndX - nycStartX}px, ${nycEndY - nycStartY}px) scale(0.3)`,
+                    opacity: 0
+                }
+            ], {
+                duration: nycDuration,
+                easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)'
+            });
+            
+            // Animate trail
+            nycTrail.animate([
+                { 
+                    transform: `rotate(${nycAngle}rad) scaleY(1)`,
+                    opacity: 1
+                },
+                { 
+                    transform: `rotate(${nycAngle}rad) scaleY(0.1)`,
+                    opacity: 0
+                }
+            ], {
+                duration: nycDuration * 0.5,
+                easing: 'ease-out'
+            });
+            
+            // Create flash at impact point
+            setTimeout(function() {
+                const nycFlash = document.createElement("div");
+                nycFlash.className = "nyc-spark-flash";
+                nycFlash.style.left = `${nycEndX}px`;
+                nycFlash.style.top = `${nycEndY}px`;
                 
-                // Choose which side to spark from
-                const nycSide = Math.floor(Math.random() * 4);
-                
-                let nycStartX, nycStartY, nycAngle;
-                
-                switch(nycSide) {
-                    case 0: // Top
-                        nycStartX = Math.random() * nycContainerRect.width;
-                        nycStartY = 0;
-                        nycAngle = Math.PI * 0.5 + (Math.random() * 0.8 - 0.4);
-                        break;
-                    case 1: // Right
-                        nycStartX = nycContainerRect.width;
-                        nycStartY = Math.random() * nycContainerRect.height;
-                        nycAngle = Math.PI + (Math.random() * 0.8 - 0.4);
-                        break;
-                    case 2: // Bottom
-                        nycStartX = Math.random() * nycContainerRect.width;
-                        nycStartY = nycContainerRect.height;
-                        nycAngle = Math.PI * 1.5 + (Math.random() * 0.8 - 0.4);
-                        break;
-                    case 3: // Left
-                        nycStartX = 0;
-                        nycStartY = Math.random() * nycContainerRect.height;
-                        nycAngle = Math.random() * 0.8 - 0.4;
-                        break;
+                // Flash color based on temperature
+                if (nycTemp > 0.7) {
+                    nycFlash.style.background = `radial-gradient(circle, #fff 0%, #ffcc00 70%, transparent 100%)`;
+                } else if (nycTemp > 0.4) {
+                    nycFlash.style.background = `radial-gradient(circle, #fff 0%, #ff9900 70%, transparent 100%)`;
+                } else {
+                    nycFlash.style.background = `radial-gradient(circle, #fff 0%, #ff5500 70%, transparent 100%)`;
                 }
                 
-                // Create the spark
-                const nycSparkCount = 3 + Math.floor(Math.random() * 5);
+                nycContainer.appendChild(nycFlash);
                 
-                for (let i = 0; i < nycSparkCount; i++) {
-                    setTimeout(function() {
-                        // Create spark trail
-                        const nycTrail = document.createElement("div");
-                        nycTrail.className = "nyc-spark-trail";
-                        nycTrail.style.left = `${nycStartX}px`;
-                        nycTrail.style.top = `${nycStartY}px`;
-                        nycTrail.style.transform = `rotate(${nycAngle}rad)`;
-                        
-                        // Random trail color temperature
-                        const nycTemp = Math.random();
-                        if (nycTemp > 0.7) {
-                            nycTrail.style.background = `linear-gradient(to bottom, transparent, #ffcc00, #ff9900)`;
-                        } else if (nycTemp > 0.4) {
-                            nycTrail.style.background = `linear-gradient(to bottom, transparent, #ff9900, #ff5500)`;
-                        } else {
-                            nycTrail.style.background = `linear-gradient(to bottom, transparent, #ff5500, #ff3300)`;
-                        }
-                        
-                        nycContainer.appendChild(nycTrail);
-                        
-                        // Create spark particle
-                        const nycSpark = document.createElement("div");
-                        nycSpark.className = "nyc-welding-spark";
-                        nycSpark.style.left = `${nycStartX}px`;
-                        nycSpark.style.top = `${nycStartY}px`;
-                        
-                        // Random spark color based on temperature
-                        if (nycTemp > 0.7) {
-                            nycSpark.style.background = `radial-gradient(circle, #fff9c4, #ffcc00)`;
-                            nycSpark.style.boxShadow = `0 0 6px 2px #ffcc00`;
-                        } else if (nycTemp > 0.4) {
-                            nycSpark.style.background = `radial-gradient(circle, #ffcc80, #ff9900)`;
-                            nycSpark.style.boxShadow = `0 0 5px 1px #ff9900`;
-                        } else {
-                            nycSpark.style.background = `radial-gradient(circle, #ffab91, #ff5500)`;
-                            nycSpark.style.boxShadow = `0 0 4px 1px #ff5500`;
-                        }
-                        
-                        nycContainer.appendChild(nycSpark);
-                        
-                        // Animate spark
-                        const nycDistance = 10 + Math.random() * 25;
-                        const nycSparkAngle = nycAngle + (Math.random() * 0.4 - 0.2);
-                        const nycEndX = nycStartX + Math.cos(nycSparkAngle) * nycDistance;
-                        const nycEndY = nycStartY + Math.sin(nycSparkAngle) * nycDistance;
-                        
-                        const nycDuration = 300 + Math.random() * 400;
-                        
-                        // Animate spark
-                        nycSpark.animate([
-                            { 
-                                transform: 'translate(0, 0) scale(1)',
-                                opacity: 1
-                            },
-                            { 
-                                transform: `translate(${nycEndX - nycStartX}px, ${nycEndY - nycStartY}px) scale(0.3)`,
-                                opacity: 0
-                            }
-                        ], {
-                            duration: nycDuration,
-                            easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)'
-                        });
-                        
-                        // Animate trail
-                        nycTrail.animate([
-                            { 
-                                transform: `rotate(${nycAngle}rad) scaleY(1)`,
-                                opacity: 1
-                            },
-                            { 
-                                transform: `rotate(${nycAngle}rad) scaleY(0.1)`,
-                                opacity: 0
-                            }
-                        ], {
-                            duration: nycDuration * 0.5,
-                            easing: 'ease-out'
-                        });
-                        
-                        // Create flash at impact point
-                        setTimeout(function() {
-                            const nycFlash = document.createElement("div");
-                            nycFlash.className = "nyc-spark-flash";
-                            nycFlash.style.left = `${nycEndX}px`;
-                            nycFlash.style.top = `${nycEndY}px`;
-                            
-                            // Flash color based on temperature
-                            if (nycTemp > 0.7) {
-                                nycFlash.style.background = `radial-gradient(circle, #fff 0%, #ffcc00 70%, transparent 100%)`;
-                            } else if (nycTemp > 0.4) {
-                                nycFlash.style.background = `radial-gradient(circle, #fff 0%, #ff9900 70%, transparent 100%)`;
-                            } else {
-                                nycFlash.style.background = `radial-gradient(circle, #fff 0%, #ff5500 70%, transparent 100%)`;
-                            }
-                            
-                            nycContainer.appendChild(nycFlash);
-                            
-                            // Remove elements after animation
-                            setTimeout(function() {
-                                nycSpark.remove();
-                                nycTrail.remove();
-                                nycFlash.remove();
-                            }, 500);
-                        }, nycDuration * 0.8);
-                        
-                    }, i * 40);
-                }
-            }
+                // Remove elements after animation
+                setTimeout(function() {
+                    nycSpark.remove();
+                    nycTrail.remove();
+                    nycFlash.remove();
+                }, 500);
+            }, nycDuration * 0.8);
             
-            function nycStartCountdown() {
-                const nycTarget = new Date(nycNextYear, 0, 1);
-                
-                function nycUpdateCountdown() {
-                    const nycNow = new Date();
-                    const nycDiff = nycTarget - nycNow;
-                    
-                    // If countdown is complete
-                    if (nycDiff <= 0 || TEST_FIREWORKS) {
-                        nycTimeEl.style.display = 'none';
-                        nycYearText.textContent = `${nycNextYear}`;
-                        nycCelebrationText.style.display = 'block';
-                        nycCelebrationText.textContent = "HAPPY NEW YEAR!";
-                        
-                        // Increase spark frequency for celebration
-                        setInterval(function() {
-                            nycCreateWeldingSpark();
-                            nycCreateWeldingSpark();
-                        }, 100);
-                        
-                        // Start full-site fireworks
-                        nycStartFullSiteFireworks();
-                        return;
-                    }
-                    
-                    // Calculate time units
-                    const nycDays = Math.floor(nycDiff / 86400000);
-                    const nycHours = Math.floor(nycDiff / 3600000) % 24;
-                    const nycMinutes = Math.floor(nycDiff / 60000) % 60;
-                    const nycSeconds = Math.floor(nycDiff / 1000) % 60;
-                  
-                  // Format compact version for small container
-                    if (nycDays > 0) {
-                        nycTimeEl.textContent = `${nycDays}d ${nycHours}h`;
-                    } else if (nycHours > 0) {
-                        nycTimeEl.textContent = `${nycHours}h ${nycMinutes}m`;
-                    } else {
-                        nycTimeEl.textContent = `${nycMinutes}m ${nycSeconds}s`;
-                    }
-                    
-                    // Update glow based on progress
-                    const nycProgress = nycDiff / (nycTarget - new Date(nycCurrentYear, 0, 1));
-                    nycUpdateGlow(nycProgress);
-                    
-                    // Increase spark frequency as countdown approaches zero
-                    if (nycProgress < 0.1 && Math.random() < 0.1) {
-                        nycCreateWeldingSpark();
-                    }
-                    
-                    // More frequent fireworks as countdown approaches zero
-                    if (nycProgress < 0.01 && Math.random() < 0.05) {
-                        nycCreateFullSiteFirework();
-                    }
-                    
-                    requestAnimationFrame(nycUpdateCountdown);
-                }
-                
-                nycUpdateCountdown();
-            }
+        }, i * 40);
+    }
+}
+
+function nycStartCountdown() {
+    // Target is January 1st, 00:00:00 Philippine Time (UTC+8)
+    const phTarget = new Date(Date.UTC(phNextYear, 0, 1, -8, 0, 0, 0));
+    
+    function nycUpdateCountdown() {
+        const phNow = getPHTime();
+        const nycDiff = phTarget - phNow;
+        
+        // If countdown is complete (Philippine New Year)
+        if (nycDiff <= 0 || TEST_FIREWORKS) {
+            nycTimeEl.style.display = 'none';
+            nycYearText.textContent = `${phNextYear}`;
+            nycCelebrationText.style.display = 'block';
+            nycCelebrationText.textContent = "HAPPY NEW YEAR!";
             
-            function nycShowNextYearCountdown() {
-                const nycNextNextYear = nycCurrentYear + 1;
-                const nycTarget = new Date(nycNextNextYear, 0, 1);
-                
-                function nycUpdate() {
-                    const nycNow = new Date();
-                    if (nycNow.getMonth() === 0) {
-                        const nycDiff = nycTarget - nycNow;
-                        const nycDays = Math.floor(nycDiff / 86400000);
-                        const nycHours = Math.floor(nycDiff / 3600000) % 24;
-                        nycYearText.textContent = `${nycCurrentYear} | ${nycDays}d ${nycHours}h`;
-                    }
-                    requestAnimationFrame(nycUpdate);
-                }
-                
-                nycUpdate();
-            }
+            // Increase spark frequency for celebration
+            setInterval(function() {
+                nycCreateWeldingSpark();
+                nycCreateWeldingSpark();
+            }, 100);
             
-            function nycUpdateGlow(progress) {
-                const nycGlow = document.getElementById("nyc-glow");
-                const nycIntensity = Math.max(0.2, progress);
-                const nycPulse = Math.sin(Date.now() / 1000) * 0.1 + 0.9;
-                
-                nycGlow.style.boxShadow = `
-                    0 0 ${20 * nycIntensity * nycPulse}px rgba(255, 100, 100, ${nycIntensity * 0.8}),
-                    0 0 ${40 * nycIntensity * nycPulse}px rgba(255, 50, 50, ${nycIntensity * 0.5})
-                `;
-            }
-            
-            // Full-site firework functions
-            function nycCreateFullSiteFirework() {
+            // Start full-site fireworks at Philippine midnight
+            nycStartFullSiteFireworks();
+            return;
+        }
+        
+        // Calculate time units
+        const nycDays = Math.floor(nycDiff / 86400000);
+        const nycHours = Math.floor(nycDiff / 3600000) % 24;
+        const nycMinutes = Math.floor(nycDiff / 60000) % 60;
+        const nycSeconds = Math.floor(nycDiff / 1000) % 60;
+      
+        // Format compact version for small container
+        if (nycDays > 0) {
+            nycTimeEl.textContent = `${nycDays}d ${nycHours}h`;
+        } else if (nycHours > 0) {
+            nycTimeEl.textContent = `${nycHours}h ${nycMinutes}m`;
+        } else {
+            nycTimeEl.textContent = `${nycMinutes}m ${nycSeconds}s`;
+        }
+        
+        // Update glow based on progress
+        const phYearStart = new Date(Date.UTC(phCurrentYear, 0, 1, -8, 0, 0, 0));
+        const nycProgress = nycDiff / (phTarget - phYearStart);
+        nycUpdateGlow(nycProgress);
+        
+        // Increase spark frequency as countdown approaches zero
+        if (nycProgress < 0.1 && Math.random() < 0.1) {
+            nycCreateWeldingSpark();
+        }
+        
+        // More frequent fireworks as countdown approaches zero
+        if (nycProgress < 0.01 && Math.random() < 0.05) {
+            nycCreateFullSiteFirework();
+        }
+        
+        requestAnimationFrame(nycUpdateCountdown);
+    }
+    
+    nycUpdateCountdown();
+}
+
+function nycShowNextYearCountdown() {
+    const phNextNextYear = phCurrentYear + 1;
+    const phTarget = new Date(Date.UTC(phNextNextYear, 0, 1, -8, 0, 0, 0));
+    
+    function nycUpdate() {
+        const phNow = getPHTime();
+        // Only show during January 1st Philippine time
+        if (phNow.getMonth() === 0 && phNow.getDate() === 1) {
+            const nycDiff = phTarget - phNow;
+            const nycDays = Math.floor(nycDiff / 86400000);
+            const nycHours = Math.floor(nycDiff / 3600000) % 24;
+            nycYearText.textContent = `${phCurrentYear} | ${nycDays}d ${nycHours}h`;
+        }
+        requestAnimationFrame(nycUpdate);
+    }
+    
+    nycUpdate();
+}
+
+function nycUpdateGlow(progress) {
+    const nycGlow = document.getElementById("nyc-glow");
+    const nycIntensity = Math.max(0.2, progress);
+    const nycPulse = Math.sin(Date.now() / 1000) * 0.1 + 0.9;
+    
+    nycGlow.style.boxShadow = `
+        0 0 ${20 * nycIntensity * nycPulse}px rgba(255, 100, 100, ${nycIntensity * 0.8}),
+        0 0 ${40 * nycIntensity * nycPulse}px rgba(255, 50, 50, ${nycIntensity * 0.5})
+    `;
+}
+
+// Full-site firework functions
+function nycCreateFullSiteFirework() {
+    const nycX = Math.random() * window.innerWidth;
+    const nycY = window.innerHeight;
+    const nycHue = Math.random() * 360;
+    
+    nycLaunchFullSiteFirework(nycX, nycY, nycHue);
+}
+
+function nycLaunchFullSiteFirework(nycX, nycY, nycHue) {
+    // Create rising tail
+    const nycTail = document.createElement("div");
+    nycTail.className = "nyc-firework-tail";
+    nycTail.style.left = `${nycX}px`;
+    nycTail.style.top = `${nycY}px`;
+    nycTail.style.background = `linear-gradient(to top, hsl(${nycHue}, 100%, 60%), transparent)`;
+    document.body.appendChild(nycTail);
+    
+    setTimeout(function() { nycTail.remove(); }, 1500);
+    
+    // Create firework burst
+    setTimeout(function() {
+        const nycBurstY = 100 + Math.random() * (window.innerHeight * 0.7);
+        nycCreateFullSiteFireworkBurst(nycX, nycBurstY, nycHue);
+    }, 1200);
+}
+
+function nycCreateFullSiteFireworkBurst(nycX, nycY, nycHue) {
+    const nycBurst = document.createElement("div");
+    nycBurst.className = "nyc-firework-burst";
+    nycBurst.style.left = `${nycX}px`;
+    nycBurst.style.top = `${nycY}px`;
+    
+    // Create central flash
+    const nycCore = document.createElement("div");
+    nycCore.className = "nyc-firework";
+    nycCore.style.left = `0px`;
+    nycCore.style.top = `0px`;
+    nycCore.style.background = `radial-gradient(circle, hsl(${nycHue}, 100%, 80%) 0%, hsl(${nycHue}, 100%, 60%) 30%, transparent 70%)`;
+    nycCore.style.boxShadow = `0 0 20px 10px hsl(${nycHue}, 100%, 60%)`;
+    nycCore.style.animation = `nyc-explode 0.8s ease-out forwards`;
+    
+    nycBurst.appendChild(nycCore);
+    document.body.appendChild(nycBurst);
+    
+    // Create particles
+    const nycParticleCount = 100 + Math.random() * 100;
+    for (let i = 0; i < nycParticleCount; i++) {
+        const nycParticle = document.createElement("div");
+        nycParticle.className = "nyc-firework-particle";
+        
+        const nycAngle = Math.random() * Math.PI * 2;
+        const nycDistance = 50 + Math.random() * 200;
+        const nycTx = Math.cos(nycAngle) * nycDistance;
+        const nycTy = Math.sin(nycAngle) * nycDistance;
+        
+        nycParticle.style.setProperty('--tx', `${nycTx}px`);
+        nycParticle.style.setProperty('--ty', `${nycTy}px`);
+        
+        const nycParticleHue = (nycHue + Math.random() * 60 - 30) % 360;
+        nycParticle.style.background = `hsl(${nycParticleHue}, 80%, 60%)`;
+        nycParticle.style.boxShadow = `0 0 6px 2px hsl(${nycParticleHue}, 100%, 60%)`;
+        
+        const nycSize = 3 + Math.random() * 4;
+        nycParticle.style.width = `${nycSize}px`;
+        nycParticle.style.height = `${nycSize}px`;
+        nycParticle.style.animationDelay = `${Math.random() * 0.3}s`;
+        
+        nycBurst.appendChild(nycParticle);
+    }
+    
+    setTimeout(function() { nycBurst.remove(); }, 2000);
+}
+
+function nycCreateConfetti() {
+    const nycConfettiCount = 15;
+    for (let i = 0; i < nycConfettiCount; i++) {
+        const nycConfetti = document.createElement("div");
+        nycConfetti.className = "nyc-confetti";
+        
+        nycConfetti.style.left = `${Math.random() * window.innerWidth}px`;
+        nycConfetti.style.top = `-10px`;
+        
+        const nycHue = Math.random() * 360;
+        nycConfetti.style.background = `hsl(${nycHue}, 100%, 60%)`;
+        
+        if (Math.random() > 0.5) {
+            nycConfetti.style.borderRadius = "50%";
+        } else {
+            nycConfetti.style.borderRadius = "2px";
+            nycConfetti.style.width = `${8 + Math.random() * 6}px`;
+            nycConfetti.style.height = `${4 + Math.random() * 4}px`;
+        }
+        
+        nycConfetti.style.animationDuration = `${3 + Math.random() * 3}s`;
+        
+        document.body.appendChild(nycConfetti);
+        setTimeout(function() { nycConfetti.remove(); }, 6000);
+    }
+}
+
+function nycStartFullSiteFireworks() {
+    const nycFireworkInterval = setInterval(function() {
+        // Launch fireworks
+        const nycFireworkCount = 1 + Math.floor(Math.random() * 2);
+        
+        for (let i = 0; i < nycFireworkCount; i++) {
+            setTimeout(function() {
                 const nycX = Math.random() * window.innerWidth;
-                const nycY = window.innerHeight;
+                const nycHue = Math.random() * 360;
+                nycLaunchFullSiteFirework(nycX, window.innerHeight, nycHue);
+            }, i * 500);
+        }
+        
+        // Occasionally create confetti
+        if (Math.random() < 0.2) {
+            nycCreateConfetti();
+        }
+        
+         // Big clustered firework
+        if (Math.random() < 0.15) {
+            setTimeout(function() {
+                const nycX = Math.random() * window.innerWidth;
+                const nycY = 150 + Math.random() * (window.innerHeight * 0.5);
                 const nycHue = Math.random() * 360;
                 
-                nycLaunchFullSiteFirework(nycX, nycY, nycHue);
-            }
-            
-            function nycLaunchFullSiteFirework(nycX, nycY, nycHue) {
-                // Create rising tail
-                const nycTail = document.createElement("div");
-                nycTail.className = "nyc-firework-tail";
-                nycTail.style.left = `${nycX}px`;
-                nycTail.style.top = `${nycY}px`;
-                nycTail.style.background = `linear-gradient(to top, hsl(${nycHue}, 100%, 60%), transparent)`;
-                document.body.appendChild(nycTail);
-                
-                setTimeout(function() { nycTail.remove(); }, 1500);
-                
-                // Create firework burst
-                setTimeout(function() {
-                    const nycBurstY = 100 + Math.random() * (window.innerHeight * 0.7);
-                    nycCreateFullSiteFireworkBurst(nycX, nycBurstY, nycHue);
-                }, 1200);
-            }
-            
-            function nycCreateFullSiteFireworkBurst(nycX, nycY, nycHue) {
-                const nycBurst = document.createElement("div");
-                nycBurst.className = "nyc-firework-burst";
-                nycBurst.style.left = `${nycX}px`;
-                nycBurst.style.top = `${nycY}px`;
-                
-                // Create central flash
-                const nycCore = document.createElement("div");
-                nycCore.className = "nyc-firework";
-                nycCore.style.left = `0px`;
-                nycCore.style.top = `0px`;
-                nycCore.style.background = `radial-gradient(circle, hsl(${nycHue}, 100%, 80%) 0%, hsl(${nycHue}, 100%, 60%) 30%, transparent 70%)`;
-                nycCore.style.boxShadow = `0 0 20px 10px hsl(${nycHue}, 100%, 60%)`;
-                nycCore.style.animation = `nyc-explode 0.8s ease-out forwards`;
-                
-                nycBurst.appendChild(nycCore);
-                document.body.appendChild(nycBurst);
-                
-                // Create particles
-                const nycParticleCount = 100 + Math.random() * 100;
-                for (let i = 0; i < nycParticleCount; i++) {
-                    const nycParticle = document.createElement("div");
-                    nycParticle.className = "nyc-firework-particle";
-                    
-                    const nycAngle = Math.random() * Math.PI * 2;
-                    const nycDistance = 50 + Math.random() * 200;
-                    const nycTx = Math.cos(nycAngle) * nycDistance;
-                    const nycTy = Math.sin(nycAngle) * nycDistance;
-                    
-                    nycParticle.style.setProperty('--tx', `${nycTx}px`);
-                    nycParticle.style.setProperty('--ty', `${nycTy}px`);
-                    
-                    const nycParticleHue = (nycHue + Math.random() * 60 - 30) % 360;
-                    nycParticle.style.background = `hsl(${nycParticleHue}, 80%, 60%)`;
-                    nycParticle.style.boxShadow = `0 0 6px 2px hsl(${nycParticleHue}, 100%, 60%)`;
-                    
-                    const nycSize = 3 + Math.random() * 4;
-                    nycParticle.style.width = `${nycSize}px`;
-                    nycParticle.style.height = `${nycSize}px`;
-                    nycParticle.style.animationDelay = `${Math.random() * 0.3}s`;
-                    
-                    nycBurst.appendChild(nycParticle);
+                const nycClusterCount = 2 + Math.floor(Math.random() * 2);
+                for (let j = 0; j < nycClusterCount; j++) {
+                    setTimeout(function() {
+                        nycCreateFullSiteFireworkBurst(
+                            nycX + (Math.random() * 100 - 50), 
+                            nycY + (Math.random() * 80 - 40), 
+                            (nycHue + j * 60) % 360
+                        );
+                    }, j * 250);
                 }
-                
-                setTimeout(function() { nycBurst.remove(); }, 2000);
-            }
-            
-            function nycCreateConfetti() {
-                const nycConfettiCount = 15;
-                for (let i = 0; i < nycConfettiCount; i++) {
-                    const nycConfetti = document.createElement("div");
-                    nycConfetti.className = "nyc-confetti";
-                    
-                    nycConfetti.style.left = `${Math.random() * window.innerWidth}px`;
-                    nycConfetti.style.top = `-10px`;
-                    
-                    const nycHue = Math.random() * 360;
-                    nycConfetti.style.background = `hsl(${nycHue}, 100%, 60%)`;
-                    
-                    if (Math.random() > 0.5) {
-                        nycConfetti.style.borderRadius = "50%";
-                    } else {
-                        nycConfetti.style.borderRadius = "2px";
-                        nycConfetti.style.width = `${8 + Math.random() * 6}px`;
-                        nycConfetti.style.height = `${4 + Math.random() * 4}px`;
-                    }
-                    
-                    nycConfetti.style.animationDuration = `${3 + Math.random() * 3}s`;
-                    
-                    document.body.appendChild(nycConfetti);
-                    setTimeout(function() { nycConfetti.remove(); }, 6000);
-                }
-            }
-            
-            function nycStartFullSiteFireworks() {
-                const nycFireworkInterval = setInterval(function() {
-                    // Launch fireworks
-                    const nycFireworkCount = 1 + Math.floor(Math.random() * 2);
-                    
-                    for (let i = 0; i < nycFireworkCount; i++) {
-                        setTimeout(function() {
-                            const nycX = Math.random() * window.innerWidth;
-                            const nycHue = Math.random() * 360;
-                            nycLaunchFullSiteFirework(nycX, window.innerHeight, nycHue);
-                        }, i * 500);
-                    }
-                    
-                    // Occasionally create confetti
-                    if (Math.random() < 0.2) {
-                        nycCreateConfetti();
-                    }
-                    
-                     // Big clustered firework
-                    if (Math.random() < 0.15) {
-                        setTimeout(function() {
-                            const nycX = Math.random() * window.innerWidth;
-                            const nycY = 150 + Math.random() * (window.innerHeight * 0.5);
-                            const nycHue = Math.random() * 360;
-                            
-                            const nycClusterCount = 2 + Math.floor(Math.random() * 2);
-                            for (let j = 0; j < nycClusterCount; j++) {
-                                setTimeout(function() {
-                                    nycCreateFullSiteFireworkBurst(
-                                        nycX + (Math.random() * 100 - 50), 
-                                        nycY + (Math.random() * 80 - 40), 
-                                        (nycHue + j * 60) % 360
-                                    );
-                                }, j * 250);
-                            }
-                        }, 800);
-                    }
-                }, 1800);
-                
-                // Keep fireworks going throughout January
-                if (nycCurrentMonth === 0) {
-                    const nycEndOfJanuary = new Date(nycCurrentYear, 1, 1);
-                    const nycTimeUntilEnd = nycEndOfJanuary - nycNow;
-                    
-                    if (nycTimeUntilEnd > 0) {
-                        setTimeout(function() { clearInterval(nycFireworkInterval); }, nycTimeUntilEnd);
-                    }
-                }
-            }
-        })();
+            }, 800);
+        }
+    }, 1800);
+    
+    // Keep fireworks going only for January 1st Philippine time
+    // Stop at midnight of January 2nd Philippine time
+    const phNow = getPHTime();
+    const phEndOfNewYearsDay = new Date(Date.UTC(phCurrentYear, 0, 2, -8, 0, 0, 0));
+    const nycTimeUntilEnd = phEndOfNewYearsDay - phNow;
+    
+    if (nycTimeUntilEnd > 0) {
+        setTimeout(function() { clearInterval(nycFireworkInterval); }, nycTimeUntilEnd);
+    }
+}
+})();
     </script>
 </body>
 </html>
